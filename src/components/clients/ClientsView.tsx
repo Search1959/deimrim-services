@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, Plus, X, Search, Edit3, Phone, Mail, Tag, Trash2 } from "lucide-react";
+import { Users, Plus, X, Search, Edit3, Phone, Mail, Tag, Trash2, Upload, Download } from "lucide-react";
 import { Client, formatINR } from "../../types";
 import { toast } from "../../utils/toast";
 
@@ -25,6 +25,59 @@ export default function ClientsView({ clients, setClients, tenantId }: Props) {
     c.email.toLowerCase().includes(search.toLowerCase()) ||
     c.code.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleExport = async () => {
+    const XLSX = await import("xlsx");
+    const rows = clients.map(c => ({
+      "Client Code":  c.code,
+      "Client Name":  c.name,
+      "Type":         c.type,
+      "Email":        c.email,
+      "Phone":        c.phone,
+      "Address":      c.address,
+      "Tags":         (c.tags || []).join(", "),
+      "Notes":        c.notes || "",
+      "Total Spend":  c.totalSpend || 0,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Clients");
+    XLSX.writeFile(wb, "Clients_Export.xlsx");
+    toast.success("Exported", `${rows.length} clients downloaded as Excel`);
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const XLSX = await import("xlsx");
+    const data = await file.arrayBuffer();
+    const wb = XLSX.read(data);
+    const rows: any[] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    let added = 0;
+    rows.forEach(row => {
+      const name = row["Client Name"] || row["name"] || "";
+      if (!name) return;
+      const tagsRaw = row["Tags"] || row["tags"] || "";
+      const newClient: Client = {
+        id:         `clt-${Date.now()}-${added}`,
+        tenantId,
+        code:       row["Client Code"] || row["code"] || `CLT-${String(clients.length + added + 1).padStart(3, "0")}`,
+        name,
+        type:       (row["Type"] || row["type"] || "business") as Client["type"],
+        email:      row["Email"] || row["email"] || "",
+        phone:      row["Phone"] || row["phone"] || "",
+        address:    row["Address"] || row["address"] || "",
+        tags:       tagsRaw ? tagsRaw.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
+        notes:      row["Notes"] || row["notes"] || "",
+        totalSpend: Number(row["Total Spend"] || 0),
+        createdAt:  new Date().toISOString().slice(0, 10),
+      };
+      setClients(prev => [newClient, ...prev]);
+      added++;
+    });
+    toast.success("Import Complete", `${added} clients added`);
+    e.target.value = "";
+  };
 
   const openNew = () => {
     const nextCode = `CLT-${String(clients.length + 1).padStart(3, "0")}`;
@@ -78,6 +131,13 @@ export default function ClientsView({ clients, setClients, tenantId }: Props) {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..." className="pl-8 pr-3 py-2 text-xs bg-slate-900 border border-slate-800 rounded-lg text-slate-200 focus:outline-none focus:border-indigo-500 w-48" />
           </div>
+          <button onClick={handleExport} className="flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 text-xs font-bold text-slate-300 cursor-pointer transition-all">
+            <Download className="h-3.5 w-3.5" /> Export
+          </button>
+          <label className="flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 text-xs font-bold text-slate-300 cursor-pointer transition-all">
+            <Upload className="h-3.5 w-3.5" /> Import
+            <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
+          </label>
           <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
             <Plus className="h-4 w-4" /> Add Client
           </button>
@@ -110,8 +170,8 @@ export default function ClientsView({ clients, setClients, tenantId }: Props) {
             </div>
 
             <div className="space-y-1 text-xs text-slate-400">
-              <div className="flex items-center gap-1.5"><Mail className="h-3 w-3 shrink-0" />{c.email || "—"}</div>
-              <div className="flex items-center gap-1.5"><Phone className="h-3 w-3 shrink-0" />{c.phone || "—"}</div>
+              <div className="flex items-center gap-1.5"><Mail className="h-3 w-3 shrink-0" />{c.email || "-"}</div>
+              <div className="flex items-center gap-1.5"><Phone className="h-3 w-3 shrink-0" />{c.phone || "-"}</div>
             </div>
 
             {c.tags.length > 0 && (
@@ -135,7 +195,7 @@ export default function ClientsView({ clients, setClients, tenantId }: Props) {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <form onSubmit={handleSave} className="w-full max-w-lg bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl animate-scaleUp space-y-4 max-h-[90vh] overflow-y-auto">
+          <form onSubmit={handleSave} className="w-full max-w-lg bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl animate-scaleUp space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="font-bold text-sm text-white uppercase tracking-wider font-mono">{editing ? "Edit Client" : "Add New Client"}</h3>
               <button type="button" onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-white rounded bg-slate-900 border border-slate-800 cursor-pointer"><X className="h-4 w-4" /></button>
@@ -177,7 +237,7 @@ export default function ClientsView({ clients, setClients, tenantId }: Props) {
                 <div className="flex flex-wrap gap-1 mt-1.5">
                   {form.tags.map(t => (
                     <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                      {t}<button type="button" onClick={() => setForm(f => ({ ...f, tags: f.tags.filter(x => x !== t) }))} className="cursor-pointer">×</button>
+                      {t}<button type="button" onClick={() => setForm(f => ({ ...f, tags: f.tags.filter(x => x !== t) }))} className="cursor-pointer">Ã-</button>
                     </span>
                   ))}
                 </div>
