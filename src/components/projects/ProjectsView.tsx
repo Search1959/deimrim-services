@@ -101,7 +101,7 @@ export default function ProjectsView({ projects, setProjects, clients, staff, te
       <div className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div>
           <h2 className="text-xl font-black text-white flex items-center gap-2"><Briefcase className="h-5 w-5 text-purple-400" /> Projects</h2>
-          <p className="text-xs text-slate-500 mt-0.5">{projects.filter(p => p.status === "active").length} active · {projects.length} total</p>
+          <p className="text-xs text-slate-500 mt-0.5">{projects.filter(p => p.status === "active").length} active Â· {projects.length} total</p>
         </div>
         <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
           <Plus className="h-4 w-4" /> New Project
@@ -138,14 +138,14 @@ export default function ProjectsView({ projects, setProjects, clients, staff, te
                       <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded border ${STATUS_COLORS[p.status]}`}>{p.status.replace("_", " ")}</span>
                       <span className="text-[10px] text-slate-500 font-mono">{p.code}</span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">{client?.name} · {p.startDate} → {p.endDate}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{client?.name} Â· {p.startDate} â†’ {p.endDate}</p>
 
                     <div className="flex items-center gap-3 mt-3">
                       <div className="flex-1">
                         <div className="w-full bg-slate-800 rounded-full h-1.5">
                           <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
                         </div>
-                        <p className="text-[10px] text-slate-500 mt-1">{done}/{p.milestones.length} milestones · {pct}% complete</p>
+                        <p className="text-[10px] text-slate-500 mt-1">{done}/{p.milestones.length} milestones Â· {pct}% complete</p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-black text-emerald-400 font-mono">{formatINR(earned)}</p>
@@ -184,7 +184,7 @@ export default function ProjectsView({ projects, setProjects, clients, staff, te
                       <span className="text-xs font-mono text-slate-400">{formatINR(m.amount)}</span>
                     </div>
                   ))}
-                  {p.notes && <p className="text-[11px] text-slate-500 italic pt-1 border-t border-slate-800">📝 {p.notes}</p>}
+                  {p.notes && <p className="text-[11px] text-slate-500 italic pt-1 border-t border-slate-800">ðŸ" {p.notes}</p>}
                 </div>
               )}
             </div>
@@ -195,7 +195,7 @@ export default function ProjectsView({ projects, setProjects, clients, staff, te
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <form onSubmit={handleSave} className="w-full max-w-lg bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl animate-scaleUp space-y-4 max-h-[90vh] overflow-y-auto">
+          <form onSubmit={handleSave} className="w-full max-w-lg bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl animate-scaleUp space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="font-bold text-sm text-white uppercase tracking-wider font-mono">{editing ? "Edit Project" : "New Project"}</h3>
               <button type="button" onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-white rounded bg-slate-900 border border-slate-800 cursor-pointer"><X className="h-4 w-4" /></button>
@@ -224,12 +224,12 @@ export default function ProjectsView({ projects, setProjects, clients, staff, te
                   <label className="block text-slate-400 mb-1 font-bold uppercase text-[10px]">Client *</label>
                   <select required value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}
                     className="w-full rounded border border-slate-700 bg-slate-900 px-2.5 py-2 text-white focus:outline-none focus:border-indigo-500">
-                    <option value="">— Select —</option>
+                    <option value="">-- Select --</option>
                     {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-400 mb-1 font-bold uppercase text-[10px]">Total Value (₹)</label>
+                  <label className="block text-slate-400 mb-1 font-bold uppercase text-[10px]">Total Value (â‚¹)</label>
                   <input type="number" min="0" value={form.totalValue} onChange={e => setForm(f => ({ ...f, totalValue: parseFloat(e.target.value) || 0 }))}
                     className="w-full rounded border border-slate-700 bg-slate-900 px-2.5 py-2 text-white focus:outline-none focus:border-indigo-500" />
                 </div>
@@ -266,8 +266,8 @@ export default function ProjectsView({ projects, setProjects, clients, staff, te
                     <div key={i} className="flex items-center justify-between bg-slate-900 rounded px-2.5 py-1.5">
                       <span className="text-slate-300">{m.title}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-500 font-mono text-[10px]">{formatINR(m.amount)} · {m.dueDate}</span>
-                        <button type="button" onClick={() => setForm(f => ({ ...f, milestones: f.milestones.filter((_, j) => j !== i) }))} className="text-red-400 cursor-pointer">×</button>
+                        <span className="text-slate-500 font-mono text-[10px]">{formatINR(m.amount)} Â· {m.dueDate}</span>
+                        <button type="button" onClick={() => setForm(f => ({ ...f, milestones: f.milestones.filter((_, j) => j !== i) }))} className="text-red-400 cursor-pointer">Ã-</button>
                       </div>
                     </div>
                   ))}
@@ -277,7 +277,7 @@ export default function ProjectsView({ projects, setProjects, clients, staff, te
                     className="col-span-3 rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-white focus:outline-none focus:border-indigo-500" />
                   <input type="date" value={msForm.dueDate} onChange={e => setMsForm(f => ({ ...f, dueDate: e.target.value }))}
                     className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-white focus:outline-none focus:border-indigo-500" />
-                  <input type="number" placeholder="Amount ₹" min="0" value={msForm.amount} onChange={e => setMsForm(f => ({ ...f, amount: parseFloat(e.target.value) || 0 }))}
+                  <input type="number" placeholder="Amount â‚¹" min="0" value={msForm.amount} onChange={e => setMsForm(f => ({ ...f, amount: parseFloat(e.target.value) || 0 }))}
                     className="rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-white focus:outline-none focus:border-indigo-500" />
                   <button type="button" onClick={addMilestone} className="rounded bg-slate-700 hover:bg-slate-600 text-white px-2 py-1.5 font-bold cursor-pointer">+ Add</button>
                 </div>

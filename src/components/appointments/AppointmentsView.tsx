@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Calendar, Plus, X, Clock, User, Edit3, Trash2, CheckCircle } from "lucide-react";
 import { Appointment, AppointmentStatus, Client, ServiceItem, StaffMember, formatINR } from "../../types";
 import { toast } from "../../utils/toast";
@@ -97,7 +97,7 @@ export default function AppointmentsView({ appointments, setAppointments, client
       <div className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div>
           <h2 className="text-xl font-black text-white flex items-center gap-2"><Calendar className="h-5 w-5 text-pink-400" /> Appointments</h2>
-          <p className="text-xs text-slate-500 mt-0.5">{appointments.filter(a => a.date === today).length} today · {appointments.filter(a => a.status === "scheduled").length} scheduled</p>
+          <p className="text-xs text-slate-500 mt-0.5">{appointments.filter(a => a.date === today).length} today Â· {appointments.filter(a => a.status === "scheduled").length} scheduled</p>
         </div>
         <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
           <Plus className="h-4 w-4" /> Book Appointment
@@ -143,7 +143,7 @@ export default function AppointmentsView({ appointments, setAppointments, client
                       <p className="font-bold text-white">{client?.name || "Unknown Client"}</p>
                       <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded border ${STATUS_COLORS[a.status]}`}>{a.status.replace("_", " ")}</span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">{a.date} at {a.time} · {a.durationMins} min</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{a.date} at {a.time} Â· {a.durationMins} min</p>
                     <p className="text-xs text-slate-500 mt-0.5">{svcNames.join(" + ")}</p>
                     {staffMember && <p className="text-[10px] text-slate-600 mt-0.5 flex items-center gap-1"><User className="h-3 w-3" />{staffMember.name}</p>}
                   </div>
@@ -174,7 +174,7 @@ export default function AppointmentsView({ appointments, setAppointments, client
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <form onSubmit={handleSave} className="w-full max-w-md bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl animate-scaleUp space-y-4 max-h-[90vh] overflow-y-auto">
+          <form onSubmit={handleSave} className="w-full max-w-md bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-2xl animate-scaleUp space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="font-bold text-sm text-white uppercase tracking-wider font-mono">{editing ? "Edit Appointment" : "Book Appointment"}</h3>
               <button type="button" onClick={() => setShowModal(false)} className="p-1 text-slate-400 hover:text-white rounded bg-slate-900 border border-slate-800 cursor-pointer"><X className="h-4 w-4" /></button>
@@ -185,7 +185,7 @@ export default function AppointmentsView({ appointments, setAppointments, client
                 <label className="block text-slate-400 mb-1 font-bold uppercase text-[10px]">Client *</label>
                 <select required value={form.clientId} onChange={e => setForm(f => ({ ...f, clientId: e.target.value }))}
                   className="w-full rounded border border-slate-700 bg-slate-900 px-2.5 py-2 text-white focus:outline-none focus:border-indigo-500">
-                  <option value="">— Select Client —</option>
+                  <option value="">-- Select Client --</option>
                   {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
@@ -193,7 +193,7 @@ export default function AppointmentsView({ appointments, setAppointments, client
                 <label className="block text-slate-400 mb-1 font-bold uppercase text-[10px]">Staff Member</label>
                 <select value={form.staffId} onChange={e => setForm(f => ({ ...f, staffId: e.target.value }))}
                   className="w-full rounded border border-slate-700 bg-slate-900 px-2.5 py-2 text-white focus:outline-none focus:border-indigo-500">
-                  <option value="">— Any Available —</option>
+                  <option value="">-- Any Available --</option>
                   {staff.map(s => <option key={s.id} value={s.id}>{s.name} ({s.role})</option>)}
                 </select>
               </div>
@@ -222,7 +222,7 @@ export default function AppointmentsView({ appointments, setAppointments, client
                 </div>
                 {form.serviceIds.length > 0 && (
                   <p className="text-xs text-emerald-400 font-mono mt-1">
-                    Total: {formatINR(calcTotal(form.serviceIds))} · {calcDuration(form.serviceIds)} min
+                    Total: {formatINR(calcTotal(form.serviceIds))} Â· {calcDuration(form.serviceIds)} min
                   </p>
                 )}
               </div>

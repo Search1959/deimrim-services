@@ -1,4 +1,4 @@
-import { Tenant, AppUser, Client, ServiceItem, Appointment, Project, Invoice, StaffMember, FinanceTx, Payment, UserRole } from "./types";
+import { Tenant, AppUser, Client, ServiceItem, Appointment, Project, Invoice, StaffMember, FinanceTx, Payment, UserRole, LeaveRequest, PayrollRecord } from "./types";
 
 // ── Demo Tenant ──────────────────────────────────────────────────────────────
 export const demoTenants: Tenant[] = [
@@ -36,6 +36,22 @@ export const demoUsers: AppUser[] = [
     name: "System Admin",
     email: "admin@deinrim360.in",
     password: "admin123",
+    role: UserRole.SYSTEM_ADMIN,
+  },
+  {
+    id: "u-arun",
+    tenantId: "SYSTEM",
+    name: "Arun Jaiswal",
+    email: "deinrimsolutionss@gmail.com",
+    password: "admin123",
+    role: UserRole.SYSTEM_ADMIN,
+  },
+  {
+    id: "u-apex7tech",
+    tenantId: "SYSTEM",
+    name: "Apex7Tech Admin",
+    email: "apex7tech@gmail.com",
+    password: "Search@1959",
     role: UserRole.SYSTEM_ADMIN,
   },
   {
@@ -121,24 +137,23 @@ export const demoProjects: Project[] = [
 export const demoInvoices: Invoice[] = [
   {
     id: "inv-1", tenantId: "t-salon-1", type: "invoice", number: "INV-2026-001",
-    clientId: "cl-1", lineItems: [{ id: "li-1", serviceId: "svc-1", description: "Haircut & Styling", qty: 1, rate: 800, taxPct: 18, total: 944 }],
-    subtotal: 800, taxTotal: 144, grandTotal: 944, status: "paid",
+    clientId: "cl-1", supplyType: "intra",
+    lineItems: [{ id: "li-1", serviceId: "svc-1", description: "Haircut & Styling", qty: 1, rate: 800, taxPct: 18, cgst: 72, sgst: 72, igst: 0, total: 944 }],
+    subtotal: 800, cgstTotal: 72, sgstTotal: 72, igstTotal: 0, taxTotal: 144, grandTotal: 944, status: "paid",
     issueDate: "2026-07-01", dueDate: "2026-07-08", notes: "", createdAt: "2026-07-01",
   },
   {
     id: "inv-2", tenantId: "t-agency-1", type: "invoice", number: "INV-2026-001",
-    clientId: "cl-3", projectId: "prj-1", lineItems: [
-      { id: "li-2", serviceId: "svc-4", description: "Discovery & Wireframes", qty: 1, rate: 15000, taxPct: 18, total: 17700 },
-    ],
-    subtotal: 15000, taxTotal: 2700, grandTotal: 17700, status: "paid",
+    clientId: "cl-3", projectId: "prj-1", supplyType: "inter",
+    lineItems: [{ id: "li-2", serviceId: "svc-4", description: "Discovery & Wireframes", qty: 1, rate: 15000, taxPct: 18, cgst: 0, sgst: 0, igst: 2700, total: 17700 }],
+    subtotal: 15000, cgstTotal: 0, sgstTotal: 0, igstTotal: 2700, taxTotal: 2700, grandTotal: 17700, status: "paid",
     issueDate: "2026-05-16", dueDate: "2026-05-23", notes: "Milestone 1 payment", createdAt: "2026-05-16",
   },
   {
     id: "inv-3", tenantId: "t-agency-1", type: "invoice", number: "INV-2026-002",
-    clientId: "cl-3", projectId: "prj-1", lineItems: [
-      { id: "li-3", serviceId: "svc-4", description: "Design Mockups", qty: 1, rate: 25000, taxPct: 18, total: 29500 },
-    ],
-    subtotal: 25000, taxTotal: 4500, grandTotal: 29500, status: "sent",
+    clientId: "cl-3", projectId: "prj-1", supplyType: "inter",
+    lineItems: [{ id: "li-3", serviceId: "svc-4", description: "Design Mockups", qty: 1, rate: 25000, taxPct: 18, cgst: 0, sgst: 0, igst: 4500, total: 29500 }],
+    subtotal: 25000, cgstTotal: 0, sgstTotal: 0, igstTotal: 4500, taxTotal: 4500, grandTotal: 29500, status: "sent",
     issueDate: "2026-06-16", dueDate: "2026-06-30", notes: "Milestone 2 payment", createdAt: "2026-06-16",
   },
 ];
@@ -155,6 +170,19 @@ export const demoStaff: StaffMember[] = [
   { id: "st-2", tenantId: "t-salon-1", code: "STF-002", name: "Sunita Das", email: "sunita@glamourstudio.in", phone: "9500000002", role: "Spa Therapist", salary: 18000, commissionPct: 8, joiningDate: "2025-09-15", active: true },
   { id: "st-3", tenantId: "t-agency-1", code: "STF-001", name: "Arjun Nair", email: "arjun@pixelcraft.in", phone: "9600000001", role: "Lead Designer", salary: 45000, commissionPct: 0, joiningDate: "2025-03-01", active: true },
   { id: "st-4", tenantId: "t-agency-1", code: "STF-002", name: "Divya Rao", email: "divya@pixelcraft.in", phone: "9600000002", role: "Digital Marketer", salary: 35000, commissionPct: 5, joiningDate: "2025-07-01", active: true },
+];
+
+// ── Demo Leave Requests ───────────────────────────────────────────────────────
+export const demoLeaveRequests: LeaveRequest[] = [
+  { id: "lr-1", tenantId: "t-salon-1", staffId: "st-1", type: "casual", fromDate: "2026-07-05", toDate: "2026-07-05", days: 1, reason: "Personal work", status: "approved", createdAt: "2026-07-04" },
+  { id: "lr-2", tenantId: "t-salon-1", staffId: "st-2", type: "sick", fromDate: "2026-07-08", toDate: "2026-07-09", days: 2, reason: "Fever", status: "approved", createdAt: "2026-07-08" },
+  { id: "lr-3", tenantId: "t-agency-1", staffId: "st-3", type: "earned", fromDate: "2026-07-14", toDate: "2026-07-16", days: 3, reason: "Family function", status: "pending", createdAt: "2026-07-10" },
+];
+
+// ── Demo Payroll Records ───────────────────────────────────────────────────────
+export const demoPayrollRecords: PayrollRecord[] = [
+  { id: "pr-1", tenantId: "t-salon-1", staffId: "st-1", month: "2026-06", presentDays: 24, workingDays: 26, grossSalary: 20308, epfEmployee: 2437, esicEmployee: 0, pt: 200, tds: 0, totalDeductions: 2637, netPay: 17671, status: "paid", paidDate: "2026-07-01" },
+  { id: "pr-2", tenantId: "t-salon-1", staffId: "st-2", month: "2026-06", presentDays: 22, workingDays: 26, grossSalary: 15231, epfEmployee: 1828, esicEmployee: 114, pt: 200, tds: 0, totalDeductions: 2142, netPay: 13089, status: "paid", paidDate: "2026-07-01" },
 ];
 
 // ── Demo Finance ─────────────────────────────────────────────────────────────

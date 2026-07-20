@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, Plus, X, Edit3, Trash2, Calendar, Award } from "lucide-react";
+import { Users, Plus, X, Edit3, Trash2, Calendar, Award, Upload, Download } from "lucide-react";
 import { StaffMember, AttendanceRecord, AttendanceStatus, formatINR } from "../../types";
 import { toast } from "../../utils/toast";
 
@@ -29,6 +29,52 @@ export default function StaffView({ staff, setStaff, attendance, setAttendance, 
   const [form, setForm] = useState({ ...BLANK });
   const today = new Date().toISOString().split("T")[0];
   const [attDate, setAttDate] = useState(today);
+
+  const handleExportStaff = async () => {
+    const XLSX = await import("xlsx");
+    const rows = staff.map(s => ({
+      "Staff Code": s.code, "Name": s.name, "Role": s.role,
+      "Email": s.email, "Phone": s.phone, "Salary": s.salary,
+      "Commission %": s.commissionPct, "Joining Date": s.joiningDate, "Active": s.active ? "Yes" : "No",
+    }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Staff");
+    XLSX.writeFile(wb, "Staff_Export.xlsx");
+    toast.success("Exported", `${rows.length} staff members downloaded`);
+  };
+
+  const handleImportStaff = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const XLSX = await import("xlsx");
+    const data: any[] = XLSX.utils.sheet_to_json(XLSX.read(await file.arrayBuffer()).Sheets[XLSX.read(await file.arrayBuffer()).SheetNames[0]]);
+    const ab = await file.arrayBuffer();
+    const parsed: any[] = XLSX.utils.sheet_to_json(XLSX.read(ab).Sheets[XLSX.read(ab).SheetNames[0]]);
+    const newStaff: StaffMember[] = parsed.filter(r => r["Name"] || r["name"]).map((row, i) => ({
+      id: `stf-imp-${Date.now()}-${i}`, tenantId,
+      code: row["Staff Code"] || row["code"] || `STF-${String(staff.length + i + 1).padStart(3, "0")}`,
+      name: row["Name"] || row["name"], role: row["Role"] || row["role"] || "",
+      email: row["Email"] || row["email"] || "", phone: row["Phone"] || row["phone"] || "",
+      salary: Number(row["Salary"] || row["salary"] || 0),
+      commissionPct: Number(row["Commission %"] || row["commissionPct"] || 0),
+      joiningDate: row["Joining Date"] || row["joiningDate"] || today,
+      active: (row["Active"] || "Yes") !== "No",
+    }));
+    setStaff(prev => [...newStaff, ...prev]);
+    toast.success("Import Complete", `${newStaff.length} staff members added`);
+    e.target.value = "";
+  };
+
+  const handleExportAttendance = async () => {
+    const XLSX = await import("xlsx");
+    const rows = attendance.map(a => {
+      const s = staff.find(x => x.id === a.staffId);
+      return { "Staff": s?.name || a.staffId, "Date": a.date, "Status": a.status };
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Attendance");
+    XLSX.writeFile(wb, "Attendance_Export.xlsx");
+    toast.success("Exported", `${rows.length} attendance records downloaded`);
+  };
 
   const openNew = () => { setEditing(null); setForm({ ...BLANK, code: `STF-${String(staff.length + 1).padStart(3, "0")}`, joiningDate: today }); setShowModal(true); };
   const openEdit = (s: StaffMember) => { setEditing(s); setForm({ code: s.code, name: s.name, email: s.email, phone: s.phone, role: s.role, salary: s.salary, commissionPct: s.commissionPct, joiningDate: s.joiningDate, active: s.active }); setShowModal(true); };
@@ -74,11 +120,25 @@ export default function StaffView({ staff, setStaff, attendance, setAttendance, 
           <h2 className="text-xl font-black text-white flex items-center gap-2"><Users className="h-5 w-5 text-indigo-400" /> Staff Management</h2>
           <p className="text-xs text-slate-500 mt-0.5">{staff.filter(s => s.active).length} active staff members</p>
         </div>
-        {tab === "staff" && (
-          <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
-            <Plus className="h-4 w-4" /> Add Staff
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {tab === "staff" && (<>
+            <button onClick={handleExportStaff} className="flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 text-xs font-bold text-slate-300 cursor-pointer transition-all">
+              <Download className="h-3.5 w-3.5" /> Export
+            </button>
+            <label className="flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 text-xs font-bold text-slate-300 cursor-pointer transition-all">
+              <Upload className="h-3.5 w-3.5" /> Import
+              <input type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportStaff} />
+            </label>
+            <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
+              <Plus className="h-4 w-4" /> Add Staff
+            </button>
+          </>)}
+          {tab === "attendance" && (
+            <button onClick={handleExportAttendance} className="flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 text-xs font-bold text-slate-300 cursor-pointer transition-all">
+              <Download className="h-3.5 w-3.5" /> Export Attendance
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
@@ -182,7 +242,7 @@ export default function StaffView({ staff, setStaff, attendance, setAttendance, 
                       <td className="px-5 py-3 text-center">
                         {status
                           ? <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${ATT_COLORS[status]}`}>{status.replace("_"," ")}</span>
-                          : <span className="text-slate-600 text-[10px]">—</span>
+                          : <span className="text-slate-600 text-[10px]">-</span>
                         }
                       </td>
                     </tr>
@@ -210,7 +270,7 @@ export default function StaffView({ staff, setStaff, attendance, setAttendance, 
                 </div>
               ))}
               <div>
-                <label className="block text-slate-400 mb-1 font-bold uppercase text-[10px]">Monthly Salary (₹)</label>
+                <label className="block text-slate-400 mb-1 font-bold uppercase text-[10px]">Monthly Salary (Rs.)</label>
                 <input type="number" min="0" value={form.salary} onChange={e => setForm(f => ({ ...f, salary: parseFloat(e.target.value) || 0 }))}
                   className="w-full rounded border border-slate-700 bg-slate-900 px-2.5 py-2 text-white focus:outline-none focus:border-indigo-500" />
               </div>

@@ -65,7 +65,7 @@ export default function ServiceCatalogueView({ services, setServices, tenantId }
       <div className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div>
           <h2 className="text-xl font-black text-white flex items-center gap-2"><Layers className="h-5 w-5 text-indigo-400" /> Service Catalogue</h2>
-          <p className="text-xs text-slate-500 mt-0.5">{services.length} services · {categories.length} categories</p>
+          <p className="text-xs text-slate-500 mt-0.5">{services.length} services Â· {categories.length} categories</p>
         </div>
         <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
           <Plus className="h-4 w-4" /> Add Service
@@ -99,7 +99,7 @@ export default function ServiceCatalogueView({ services, setServices, tenantId }
                     </td>
                     <td className="px-5 py-3 font-mono font-bold text-emerald-400">{formatINR(s.price)}</td>
                     <td className="px-5 py-3 text-slate-400 text-xs">
-                      {s.duration > 0 ? <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{s.duration} min</span> : "—"}
+                      {s.duration > 0 ? <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{s.duration} min</span> : "-"}
                     </td>
                     <td className="px-5 py-3 text-xs text-slate-400">
                       {s.taxable ? `${s.taxPct}% GST` : "Exempt"}
@@ -149,7 +149,7 @@ export default function ServiceCatalogueView({ services, setServices, tenantId }
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-400 mb-1 font-bold uppercase text-[10px]">Price (₹) *</label>
+                  <label className="block text-slate-400 mb-1 font-bold uppercase text-[10px]">Price (â‚¹) *</label>
                   <input type="number" min="0" required value={form.price} onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
                     className="w-full rounded border border-slate-700 bg-slate-900 px-2.5 py-2 text-white focus:outline-none focus:border-indigo-500" />
                 </div>

@@ -161,7 +161,7 @@ export default function FinanceView({ transactions, setTransactions, tenantId }:
               </div>
               {[
                 ["Description *", "description", "text"],
-                ["Amount (₹) *", "amount", "number"],
+                ["Amount (Rs.) *", "amount", "number"],
                 ["Date", "date", "date"],
               ].map(([l, k, t]) => (
                 <div key={k as string}>
