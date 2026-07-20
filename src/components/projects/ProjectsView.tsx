@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Briefcase, Plus, X, Edit3, Trash2, CheckCircle, Circle, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { Briefcase, Plus, X, Edit3, Trash2, CheckCircle, Circle, Clock, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { Project, ProjectStatus, Milestone, MilestoneStatus, Client, StaffMember, formatINR } from "../../types";
 import { toast } from "../../utils/toast";
 
@@ -103,9 +103,25 @@ export default function ProjectsView({ projects, setProjects, clients, staff, te
           <h2 className="text-xl font-black text-white flex items-center gap-2"><Briefcase className="h-5 w-5 text-purple-400" /> Projects</h2>
           <p className="text-xs text-slate-500 mt-0.5">{projects.filter(p => p.status === "active").length} active Â· {projects.length} total</p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
-          <Plus className="h-4 w-4" /> New Project
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={async () => {
+            const XLSX = await import("xlsx");
+            const rows = projects.map(p => {
+              const cl = clients.find(c => c.id === p.clientId);
+              const assignedNames = p.assignedStaffIds.map(id => staff.find(s => s.id === id)?.name).filter(Boolean).join(", ");
+              return { "Project": p.title, "Client": cl?.name || p.clientId, "Status": p.status, "Start Date": p.startDate, "End Date": p.endDate || "", "Total Value": p.totalValue || 0, "Assigned Staff": assignedNames, "Milestones": p.milestones.length };
+            });
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Projects");
+            XLSX.writeFile(wb, "Projects_Export.xlsx");
+            toast.success("Exported", `${rows.length} projects downloaded`);
+          }} className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg px-2.5 py-2 text-xs font-bold cursor-pointer border border-slate-700">
+            <Download className="h-3.5 w-3.5" /> Export
+          </button>
+          <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
+            <Plus className="h-4 w-4" /> New Project
+          </button>
+        </div>
       </div>
 
       {/* Status filter */}

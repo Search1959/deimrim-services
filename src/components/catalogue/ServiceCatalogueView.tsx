@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Layers, Plus, X, Edit3, Trash2, Clock } from "lucide-react";
+import { Layers, Plus, X, Edit3, Trash2, Clock, Download, Upload } from "lucide-react";
 import { ServiceItem, formatINR } from "../../types";
 import { toast } from "../../utils/toast";
 
@@ -67,9 +67,46 @@ export default function ServiceCatalogueView({ services, setServices, tenantId }
           <h2 className="text-xl font-black text-white flex items-center gap-2"><Layers className="h-5 w-5 text-indigo-400" /> Service Catalogue</h2>
           <p className="text-xs text-slate-500 mt-0.5">{services.length} services Â· {categories.length} categories</p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
-          <Plus className="h-4 w-4" /> Add Service
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={async () => {
+            const XLSX = await import("xlsx");
+            const rows = services.map(s => ({ "Code": s.code, "Name": s.name, "Category": s.category, "Description": s.description || "", "Price": s.price, "Duration (min)": s.duration, "Taxable": s.taxable ? "Yes" : "No", "Tax %": s.taxPct, "Active": s.active ? "Yes" : "No" }));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Services");
+            XLSX.writeFile(wb, "ServiceCatalogue_Export.xlsx");
+            toast.success("Exported", `${rows.length} services downloaded`);
+          }} className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg px-2.5 py-2 text-xs font-bold cursor-pointer border border-slate-700">
+            <Download className="h-3.5 w-3.5" /> Export
+          </button>
+          <label className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg px-2.5 py-2 text-xs font-bold cursor-pointer border border-slate-700">
+            <Upload className="h-3.5 w-3.5" /> Import
+            <input type="file" accept=".xlsx,.xls" className="hidden" onChange={async (e) => {
+              const file = e.target.files?.[0]; if (!file) return;
+              const XLSX = await import("xlsx");
+              const ab = await file.arrayBuffer();
+              const wb = XLSX.read(ab);
+              const data: any[] = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+              const newItems: ServiceItem[] = data.filter(r => r["Name"] || r["name"]).map((r, i) => ({
+                id: `svc-imp-${Date.now()}-${i}`, tenantId,
+                code: r["Code"] || r["code"] || `SVC-${Date.now()}-${i}`,
+                name: r["Name"] || r["name"] || "",
+                category: r["Category"] || r["category"] || "",
+                description: r["Description"] || r["description"] || "",
+                price: Number(r["Price"] || r["price"] || 0),
+                duration: Number(r["Duration (min)"] || r["duration"] || 60),
+                taxable: (r["Taxable"] || "").toString().toLowerCase() !== "no",
+                taxPct: Number(r["Tax %"] || r["taxPct"] || 18),
+                active: (r["Active"] || "").toString().toLowerCase() !== "no",
+              }));
+              setServices(prev => [...newItems, ...prev]);
+              toast.success("Imported", `${newItems.length} services added`);
+              e.target.value = "";
+            }} />
+          </label>
+          <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
+            <Plus className="h-4 w-4" /> Add Service
+          </button>
+        </div>
       </div>
 
       {services.length === 0 && <p className="text-center py-16 text-slate-500 text-xs">No services yet. Add your first service.</p>}

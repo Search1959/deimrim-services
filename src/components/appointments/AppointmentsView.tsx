@@ -1,5 +1,5 @@
 ﻿import React, { useState } from "react";
-import { Calendar, Plus, X, Clock, User, Edit3, Trash2, CheckCircle } from "lucide-react";
+import { Calendar, Plus, X, Clock, User, Edit3, Trash2, CheckCircle, Download } from "lucide-react";
 import { Appointment, AppointmentStatus, Client, ServiceItem, StaffMember, formatINR } from "../../types";
 import { toast } from "../../utils/toast";
 
@@ -99,9 +99,26 @@ export default function AppointmentsView({ appointments, setAppointments, client
           <h2 className="text-xl font-black text-white flex items-center gap-2"><Calendar className="h-5 w-5 text-pink-400" /> Appointments</h2>
           <p className="text-xs text-slate-500 mt-0.5">{appointments.filter(a => a.date === today).length} today Â· {appointments.filter(a => a.status === "scheduled").length} scheduled</p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
-          <Plus className="h-4 w-4" /> Book Appointment
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={async () => {
+            const XLSX = await import("xlsx");
+            const rows = appointments.map(a => {
+              const cl = clients.find(c => c.id === a.clientId);
+              const sm = staff.find(s => s.id === a.staffId);
+              const svcs = a.serviceIds.map(id => services.find(s => s.id === id)?.name).filter(Boolean).join(", ");
+              return { "Date": a.date, "Time": a.time, "Client": cl?.name || a.clientId, "Staff": sm?.name || a.staffId, "Services": svcs, "Status": a.status, "Notes": a.notes || "" };
+            });
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Appointments");
+            XLSX.writeFile(wb, "Appointments_Export.xlsx");
+            toast.success("Exported", `${rows.length} appointments downloaded`);
+          }} className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg px-2.5 py-2 text-xs font-bold cursor-pointer border border-slate-700">
+            <Download className="h-3.5 w-3.5" /> Export
+          </button>
+          <button onClick={openNew} className="flex items-center gap-1.5 rounded-lg bg-pink-600 hover:bg-pink-500 px-3.5 py-2 text-xs font-bold text-white cursor-pointer transition-all">
+            <Plus className="h-4 w-4" /> Book Appointment
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
